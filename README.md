@@ -3,12 +3,13 @@ Project to create an AI for online proctoring. It has three vision based functio
 1. Track eyeballs and report if candidate is looking left, right or up.
 2. Instance segmentation to count number of people and report if no one or more than one person detected.
 3. Record the distance between lips at starting. Report if candidate opens his mouth.
+4. Find and report any instances of mobile phones
 
 Might add more if get any good ideas.
 
 Run main.py. To record mouth distances press r as indicated in video displayed. Then using multithreading seperate threads are created for tracking eyes and mouth and one for counting people. To quit press q twice.
 
-*Problems:* The YOLOv3 has a very less fps like around 1(i'll calculate and update) on a CPU. So a GPU will be required as a hardware requirement if somebody wants to use this code in production. I tried using HOG but it did not give good accuracy. If anyone can help in this regard, he is more than welcome to.
+*Problems:* The YOLOv3 has a very less fps like around 0.9 on a CPU. So a GPU will be required as a hardware requirement if somebody wants to use this code in production. I tried using HOG but it did not give good accuracy. If anyone can help in this regard, he is more than welcome to.
 
 *Note:* This system does not eliminate the use of a human proctor. This can only be used to aid them and can provide a option for a proctor to monitor more than candidate.
 
