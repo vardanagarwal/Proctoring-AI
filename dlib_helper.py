@@ -42,7 +42,7 @@ def find_eyeball_position(end_points, cx, cy):
         return 0
     
 def contouring(thresh, mid, img, end_points, right=False):
-    cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[-2:]
     try:
         cnt = max(cnts, key = cv2.contourArea)
         M = cv2.moments(cnt)
