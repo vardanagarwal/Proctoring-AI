@@ -86,7 +86,7 @@ def eyes_mouth():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
             
-def count_people():
+def count_people_and_phones():
     while(True):
         ret, image = cap.read()
         frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -100,6 +100,8 @@ def count_people():
         for i in range(nums[0]):
             if int(classes[0][i] == 0):
                 count +=1
+            if int(classes[0][i] == 67):
+                print("Mobile Phone Detected")
         if count == 0:
             print('No person detected')
         elif count > 1: 
@@ -111,7 +113,7 @@ def count_people():
 
          
 t1 = threading.Thread(target=eyes_mouth) 
-t2 = threading.Thread(target=count_people) 
+t2 = threading.Thread(target=count_people_and_phones) 
 t1.start() 
 t2.start() 
 t1.join() 
