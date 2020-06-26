@@ -96,7 +96,6 @@ if flag:
 
 from nltk.corpus import stopwords 
 from nltk.tokenize import word_tokenize 
-from nltk.stem import WordNetLemmatizer
 
 #word_tokenize accepts a string as an input, not a file.
 file = open("test.txt") ## Student speech file
@@ -111,32 +110,38 @@ for w in word_tokens:   ####### Removing stop words
     if w not in stop_words: 
         filtered_sentence.append(w) 
 
-############################ Lemmatization begins
-
-lemmatizer = WordNetLemmatizer()
-
-lemma=[]
-
-for lm in filtered_sentence:
-    lemma.append(lemmatizer.lemmatize(lm))
-    
-print(lemma)
-
 ####### creating a final file
 
 f=open('final.txt','w')
-for ele in lemma:
+for ele in filtered_sentence:
     f.write(ele+' ')
 
 f.close()
     
-###### checking whether proctor needs to be alerted or not
-'''
-paper=[] ##### assuming the list of words of question paper by tokenization
+##### checking whether proctor needs to be alerted or not
 
-common = list(set(lemma)&set(paper))
+file = open("paper.txt") ## Student speech file
+data = file.read()
+file.close()
+stop_words = set(stopwords.words('english'))   
+word_tokens = word_tokenize(data) ######### tokenizing sentence
+filtered_questions = [w for w in word_tokens if not w in stop_words]  
+filtered_questions = [] 
+  
+for w in word_tokens:   ####### Removing stop words
+    if w not in stop_words: 
+        filtered_questions.append(w) 
+        
+def common_member(a, b):     
+    a_set = set(a) 
+    b_set = set(b) 
+      
+    # check length  
+    if len(a_set.intersection(b_set)) > 0: 
+        return(a_set.intersection(b_set))   
+    else: 
+        return([]) 
 
-if len(common)>10:
-    print("Alert the Proctor")
-
-'''
+comm = common_member(filtered_questions, filtered_sentence)
+print('Number of common elements:', len(comm))
+print(comm)
