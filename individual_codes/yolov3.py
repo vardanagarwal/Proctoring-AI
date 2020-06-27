@@ -340,6 +340,8 @@ while(True):
         for i in range(nums[0]):
             if int(classes[0][i] == 0):
                 count +=1
+            if int(classes[0][i] == 67):
+                print("Mobile Phone Detected")
         if count == 0:
             print('No person detected')
         elif count > 1: 
