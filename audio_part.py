@@ -10,10 +10,9 @@ def read_audio(stream, filename):
     sample_format = pyaudio.paInt16  # 16 bits per sample
     channels = 2
     fs = 44100  # Record at 44100 samples per second
-    seconds = 10
+    seconds = 10 # Number of seconds to record at once
     filename = filename
     frames = []  # Initialize array to store frames
-    # Store data in chunks for 3 seconds
     
     for i in range(0, int(fs / chunk * seconds)):
         data = stream.read(chunk)
@@ -26,7 +25,6 @@ def read_audio(stream, filename):
     wf.setframerate(fs)
     wf.writeframes(b''.join(frames))
     wf.close()
-    
     # Stop and close the stream
     stream.stop_stream()
     stream.close()
@@ -34,31 +32,25 @@ def read_audio(stream, filename):
 def convert(i):
     if i >= 0:
         sound = 'record' + str(i) +'.wav'
-     
         r = sr.Recognizer()
-     
-     
+        
         with sr.AudioFile(sound) as source:
             r.adjust_for_ambient_noise(source)
             print("Converting Audio To Text and saving to file..... ") 
             audio = r.listen(source)
         try:
-    
             value = r.recognize_google(audio) ##### API call to google for speech recognition
             os.remove(sound)
             if str is bytes: 
                 result = u"{}".format(value).encode("utf-8")
-    
             else: 
                 result = "{}".format(value)
-    
+ 
             with open("test.txt","a") as f:
                 f.write(result)
                 f.write(" ")
                 f.close()
                 
-            # print("Done !\n\n")
-    
         except sr.UnknownValueError:
             print("")
         except sr.RequestError as e:
@@ -77,12 +69,11 @@ def save_audios(i):
                 frames_per_buffer=chunk,input=True)
     filename = 'record'+str(i)+'.wav'
     read_audio(stream, filename)
- # Terminate the PortAudio interface
 
-for i in range(3):
+for i in range(30//10): # Number of total seconds to record/ Number of seconds per recording
     t1 = threading.Thread(target=save_audios, args=[i]) 
     x = i-1
-    t2 = threading.Thread(target=convert, args=[x])
+    t2 = threading.Thread(target=convert, args=[x]) # send one earlier than being recorded
     t1.start() 
     t2.start() 
     t1.join() 
@@ -97,7 +88,6 @@ if flag:
 from nltk.corpus import stopwords 
 from nltk.tokenize import word_tokenize 
 
-#word_tokenize accepts a string as an input, not a file.
 file = open("test.txt") ## Student speech file
 data = file.read()
 file.close()
@@ -111,16 +101,13 @@ for w in word_tokens:   ####### Removing stop words
         filtered_sentence.append(w) 
 
 ####### creating a final file
-
 f=open('final.txt','w')
 for ele in filtered_sentence:
     f.write(ele+' ')
-
 f.close()
     
 ##### checking whether proctor needs to be alerted or not
-
-file = open("paper.txt") ## Student speech file
+file = open("paper.txt") ## Question file
 data = file.read()
 file.close()
 stop_words = set(stopwords.words('english'))   
