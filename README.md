@@ -1,4 +1,5 @@
 # Proctoring-AI
+An in-depth explanation of the project can be found on my medium article: https://towardsdatascience.com/automating-online-proctoring-using-ai-e429086743c8?source=friends_link&sk=fbc385d1a8c55628a916dc714747f276
 
 ## Vision
 Project to create an AI for online proctoring. It has four vision based functionalities:
