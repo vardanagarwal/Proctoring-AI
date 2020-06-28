@@ -11,13 +11,13 @@ import numpy as np
 
 def shape_to_np(shape, dtype="int"):
 	# initialize the list of (x, y)-coordinates
-	coords = np.zeros((68, 2), dtype=dtype)
+    coords = np.zeros((68, 2), dtype=dtype)
 	# loop over the 68 facial landmarks and convert them
 	# to a 2-tuple of (x, y)-coordinates
-	for i in range(0, 68):
-		coords[i] = (shape.part(i).x, shape.part(i).y)
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
 	# return the list of (x, y)-coordinates
-	return coords
+    return coords
 
 def eye_on_mask(mask, side, shape):
     points = [shape[i] for i in side]
@@ -40,11 +40,11 @@ def find_eyeball_position(end_points, cx, cy):
         return 3
     else:
         return 0
-    
+
 def contouring(thresh, mid, img, end_points, right=False):
-    cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[-2:]
+    cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
     try:
-        cnt = max(cnts, key = cv2.contourArea)
+        cnt = max(cnts, key=cv2.contourArea)
         M = cv2.moments(cnt)
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
@@ -54,11 +54,11 @@ def contouring(thresh, mid, img, end_points, right=False):
         return find_eyeball_position(end_points, cx, cy)
     except:
         pass
-    
+
 def process_thresh(thresh):
-    thresh = cv2.erode(thresh, None, iterations=2) 
-    thresh = cv2.dilate(thresh, None, iterations=4) 
-    thresh = cv2.medianBlur(thresh, 3) 
+    thresh = cv2.erode(thresh, None, iterations=2)
+    thresh = cv2.dilate(thresh, None, iterations=4)
+    thresh = cv2.medianBlur(thresh, 3)
     thresh = cv2.bitwise_not(thresh)
     return thresh
 
@@ -70,3 +70,13 @@ def print_eye_pos(left, right):
             print('Looking right')
         elif left == 3:
             print('Looking up')
+
+def nothing(x):
+    pass
+    cv2.namedWindow('image')
+    cv2.createTrackbar('threshold', 'image', 0, 255, nothing)
+    threshold = cv2.getTrackbarPos('threshold', 'image')
+    _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
+    thresh = cv2.erode(thresh, None, iterations=2)
+    thresh = cv2.dilate(thresh, None, iterations=4)
+    thresh = cv2.medianBlur(thresh, 3)

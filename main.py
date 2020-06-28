@@ -4,22 +4,22 @@ Created on Wed May  6 03:38:43 2020
 
 @author: hp
 """
-
+import os
+import threading
 import cv2
 import dlib
 import numpy as np
-import threading
 from yolo_helper import YoloV3, load_darknet_weights, draw_outputs
-from dlib_helper import (shape_to_np, 
-                          eye_on_mask,
-                          contouring,
-                          process_thresh, 
-                          print_eye_pos,
-                          nothing)
+from dlib_helper import (shape_to_np,
+                         eye_on_mask,
+                         contouring,
+                         process_thresh,
+                         print_eye_pos,
+                         nothing)
 from define_mouth_distances import return_distances
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 yolo = YoloV3()
-load_darknet_weights(yolo, 'yolov3.weights') 
+load_darknet_weights(yolo, 'yolov3.weights')
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor('shape_68.dat')
 
@@ -28,7 +28,7 @@ cap = cv2.VideoCapture(0)
 _, frame_size = cap.read()
 
 def eyes_mouth():
-    
+
     ret, img = cap.read()
     thresh = img.copy()
     w, h = img.shape[:2]
@@ -39,31 +39,31 @@ def eyes_mouth():
     kernel = np.ones((9, 9), np.uint8)
     cv2.namedWindow('image')
     cv2.createTrackbar('threshold', 'image', 0, 255, nothing)
-    
 
-    while(True):
+
+    while True:
         ret, img = cap.read()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         rects = detector(gray, 1)
-        
-        for rect in rects:    
+
+        for rect in rects:
             shape = predictor(gray, rect)
             shape = shape_to_np(shape)
-            
+
             #mouth
             cnt_outer = 0
             cnt_inner = 0
             for i, (p1, p2) in enumerate(outer_points):
                 if d_outer[i] + 5 < shape[p2][1] - shape[p1][1]:
-                    cnt_outer += 1 
+                    cnt_outer += 1
             for i, (p1, p2) in enumerate(inner_points):
-                if d_inner[i] + 3 <  shape[p2][1] - shape[p1][1]:
+                if d_inner[i] + 3 < shape[p2][1] - shape[p1][1]:
                     cnt_inner += 1
             if cnt_outer > 3 or cnt_inner > 2:
                 print('Mouth open')
             for (x, y) in shape[48:]:
                 cv2.circle(img, (x, y), 2, (0, 0, 255), -1)
-                
+
             #eyes
             mask = np.zeros((w, h), dtype=np.uint8)
             mask, end_points_left = eye_on_mask(mask, left, shape)
@@ -80,14 +80,14 @@ def eyes_mouth():
             eyeball_pos_left = contouring(thresh[:, 0:mid], mid, img, end_points_left)
             eyeball_pos_right = contouring(thresh[:, mid:], mid, img, end_points_right, True)
             print_eye_pos(eyeball_pos_left, eyeball_pos_right)
-            
+
         cv2.imshow('result', img)
         cv2.imshow("image", thresh)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-            
+
 def count_people_and_phones():
-    while(True):
+    while True:
         ret, image = cap.read()
         frame = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         frame = cv2.resize(frame, (320, 320))
@@ -96,28 +96,26 @@ def count_people_and_phones():
         frame = frame / 255
         class_names = [c.strip() for c in open("classes.txt").readlines()]
         boxes, scores, classes, nums = yolo(frame)
-        count=0
+        count = 0
         for i in range(nums[0]):
             if int(classes[0][i] == 0):
-                count +=1
+                count += 1
             if int(classes[0][i] == 67):
                 print("Mobile Phone Detected")
         if count == 0:
             print('No person detected')
-        elif count > 1: 
+        elif count > 1:
             print('More than one person detected')
         image = draw_outputs(image, (boxes, scores, classes, nums), class_names)
         cv2.imshow('Prediction', image)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-         
-t1 = threading.Thread(target=eyes_mouth) 
-t2 = threading.Thread(target=count_people_and_phones) 
-t1.start() 
-t2.start() 
-t1.join() 
-t2.join() 
+t1 = threading.Thread(target=eyes_mouth)
+t2 = threading.Thread(target=count_people_and_phones)
+t1.start()
+t2.start()
+t1.join()
+t2.join()
 cap.release()
 cv2.destroyAllWindows()
-  
