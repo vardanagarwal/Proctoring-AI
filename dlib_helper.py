@@ -73,10 +73,3 @@ def print_eye_pos(left, right):
 
 def nothing(x):
     pass
-    cv2.namedWindow('image')
-    cv2.createTrackbar('threshold', 'image', 0, 255, nothing)
-    threshold = cv2.getTrackbarPos('threshold', 'image')
-    _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
-    thresh = cv2.erode(thresh, None, iterations=2)
-    thresh = cv2.dilate(thresh, None, iterations=4)
-    thresh = cv2.medianBlur(thresh, 3)
