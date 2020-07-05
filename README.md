@@ -47,7 +47,7 @@ Run `audio_part.py`
 
 ## Additional Work
 
-Dlib's frontal face HOG detector is used to find faces. However, it does not give very good results. In [face_detection]((../../tree/master/face_detection) different face detection models are compared and OpenCV's DNN module provides best result and the results are present in [this article](https://towardsdatascience.com/face-detection-models-which-to-use-and-why-d263e82c302c?source=friends_link&sk=c9e2807cf216115d7bb5a9b827bb26f8).
+Dlib's frontal face HOG detector is used to find faces. However, it does not give very good results. In [face_detection](../../tree/master/face_detection) different face detection models are compared and OpenCV's DNN module provides best result and the results are present in [this article](https://towardsdatascience.com/face-detection-models-which-to-use-and-why-d263e82c302c?source=friends_link&sk=c9e2807cf216115d7bb5a9b827bb26f8).
 
 ### To do
 Replace the HOG based descriptor by OpenCV's DNN modules Caffe model and it will also solve the issues created by side faces and occlusion.
