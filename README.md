@@ -37,6 +37,8 @@ For easier understanding of each functionality see the codes in [individual_code
 2. `yolov3.py` is for counting persons and detecting mobile phones. [Article](https://medium.com/analytics-vidhya/count-people-in-webcam-using-yolov3-tensorflow-f407679967d5?source=friends_link&sk=95ae7a010eeef429a407a7a2de2ff8ec) for more details.
 3. `dlib_mouth.py` is for checking if mouth is open or close.
 
+`head_pose_estimation.py` is used for finding where the head is facing. [Article](https://towardsdatascience.com/real-time-head-pose-estimation-in-python-e52db1bc606a?source=friends_link&sk=0bae01db2759930197bfd33777c9eaf4)
+
 ## Audio
 It is divided into two parts:
 1. Audio from the microphone is recording and converted to text using Google's speech recognition API. A different thread is used to call the API such that the recording portion is not disturbed a lot, which processes the last one, appends its data to a text file and deletes it.
