@@ -28,11 +28,11 @@ It has four vision based functionalities:
 
 ### Run
 Run `main.py`. To record mouth distances press r as indicated in video displayed. Then using multithreading, seperate threads are created for tracking eyes and mouth and one for counting people. To quit press q twice. This is for the first four functionalities.
-For head pose detection run [head_pose_detector](../../tree/master/head_pose_detector.py)
+For head pose detection run [head_pose_detector](../../tree/old_master/head_pose_detector.py)
 
 #### Tutorials and Understanding
 
-For easier understanding of each functionality see the codes in [individual_code](../../tree/master/individual_codes) where each functionallity is implemented individually. 
+For easier understanding of each functionality see the codes in [individual_code](../../tree/old_master/individual_codes) where each functionallity is implemented individually. 
 1. `dlib_eyes.py` is to track eyes. [Article](https://towardsdatascience.com/real-time-eye-tracking-using-opencv-and-dlib-b504ca724ac6?source=friends_link&sk=d9db46e2f41258c6c23d18792775d2a5) for more details.
 2. `yolov3.py` is for counting persons and detecting mobile phones. [Article](https://medium.com/analytics-vidhya/count-people-in-webcam-using-yolov3-tensorflow-f407679967d5?source=friends_link&sk=95ae7a010eeef429a407a7a2de2ff8ec) for more details.
 3. `dlib_mouth.py` is for checking if mouth is open or close.
