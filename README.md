@@ -28,7 +28,7 @@ It has four vision based functionalities:
 
 ### Run
 Run `main.py`. To record mouth distances press r as indicated in video displayed. Then using multithreading, seperate threads are created for tracking eyes and mouth and one for counting people. To quit press q twice. This is for the first four functionalities.
-For head pose detection run [head_pose_detector](../../blob/old_master/LICENSE.md)
+For head pose detection run `head_pose_detector.py`
 
 #### Tutorials and Understanding
 
