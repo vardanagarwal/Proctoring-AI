@@ -68,4 +68,4 @@ Speech to text conversion which might not work well for all dialects.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](../../blob/old_master/LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](../../blob/old_master/LICENSE) file for details
