@@ -24,9 +24,11 @@ It has four vision based functionalities:
 2. Instance segmentation to count number of people and report if no one or more than one person detected.
 3. Record the distance between lips at starting. Report if candidate opens his mouth.
 4. Find and report any instances of mobile phones.
+5. Head pose estimation to find where the person is looking.
 
 ### Run
-Run `main.py`. To record mouth distances press r as indicated in video displayed. Then using multithreading, seperate threads are created for tracking eyes and mouth and one for counting people. To quit press q twice.
+Run `main.py`. To record mouth distances press r as indicated in video displayed. Then using multithreading, seperate threads are created for tracking eyes and mouth and one for counting people. To quit press q twice. This is for the first four functionalities.
+For head pose detection run [head_pose_detector](../../tree/master/head_pose_detector.py)
 
 #### Tutorials and Understanding
 
@@ -34,6 +36,8 @@ For easier understanding of each functionality see the codes in [individual_code
 1. `dlib_eyes.py` is to track eyes. [Article](https://towardsdatascience.com/real-time-eye-tracking-using-opencv-and-dlib-b504ca724ac6?source=friends_link&sk=d9db46e2f41258c6c23d18792775d2a5) for more details.
 2. `yolov3.py` is for counting persons and detecting mobile phones. [Article](https://medium.com/analytics-vidhya/count-people-in-webcam-using-yolov3-tensorflow-f407679967d5?source=friends_link&sk=95ae7a010eeef429a407a7a2de2ff8ec) for more details.
 3. `dlib_mouth.py` is for checking if mouth is open or close.
+
+`head_pose_estimation.py` is used for finding where the head is facing. [Article](https://towardsdatascience.com/real-time-head-pose-estimation-in-python-e52db1bc606a?source=friends_link&sk=0bae01db2759930197bfd33777c9eaf4)
 
 ## Audio
 It is divided into two parts:
@@ -51,8 +55,8 @@ Dlib's frontal face HOG detector is used to find faces. However, it does not giv
 
 ### To do
 Replace the HOG based descriptor by OpenCV's DNN modules Caffe model and it will also solve the issues created by side faces and occlusion.
-Add another vision based functionality
-* To detect where the head is facing.
+Replace the dlib based facial landmarks with the CNN based facial landmarks as used in head_pose_detector.
+It will make this a lot hotch potch so I will retire this branch and make a new one with even more functionalites, better documentation and remove multithreading in the vision part.
 
 ## Contributing
 
