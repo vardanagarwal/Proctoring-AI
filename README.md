@@ -34,7 +34,7 @@ Earlier, Dlib's frontal face HOG detector was used to find faces. However, it di
 It is implemented in `face_detector.py` and is used for tracking eyes, mouth opening detection, head pose estimation, and face spoofing.
 
 ### Facial Landmarks
-Earlier, Dlib's facial landmarks model was used but it did not give good results when face was at an angle. Now, a model provided in this [repository](https://github.com/yinguobing/cnn-facial-landmark) is used. An article comparing them will be written soon.
+Earlier, Dlib's facial landmarks model was used but it did not give good results when face was at an angle. Now, a model provided in this [repository](https://github.com/yinguobing/cnn-facial-landmark) is used. A comparison between them and the reason for choosing the new Tensorflow based model is shown in this [article](https://towardsdatascience.com/robust-facial-landmarks-for-occluded-angled-faces-925e465cbf2e?source=friends_link&sk=505eb1101576227f4c38474092dd4c22).
 
 It is implemented in `face_landmarks.py` and is used for tracking eyes, mouth opening detection, and head pose estimation.
 
