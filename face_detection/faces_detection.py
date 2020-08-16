@@ -24,9 +24,11 @@ for image in images:
     img1 = img.copy()
     img2 = img.copy()
     img3 = img.copy()
-    # detect faces in the image
-    faces1 = detector1.detect_faces(img)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # detect faces in the image
+    faces1 = detector1.detect_faces(img_rgb)
+    
     faces2 = detector2(gray, 2)
     blob = cv2.dnn.blobFromImage(cv2.resize(img, (300, 300)),
                                  1.0, (300, 300), (104.0, 117.0, 123.0))
@@ -34,11 +36,12 @@ for image in images:
     faces3 = net.forward()
     faces4 = classifier2.detectMultiScale(img)
     
+    #MTCNN
     for result in faces1:
         x, y, w, h = result['box']
         x1, y1 = x + w, y + h
         cv2.rectangle(img, (x, y), (x1, y1), (0, 0, 255), 2)
-        
+    #DLIB    
     for result in faces2:
         x = result.left()
         y = result.top()
@@ -46,13 +49,14 @@ for image in images:
         y1 = result.bottom()
         cv2.rectangle(img1, (x, y), (x1, y1), (0, 0, 255), 2)
     
+    #OPENCV DNN
     for i in range(faces3.shape[2]):
         confidence = faces3[0, 0, i, 2]
         if confidence > 0.5:
             box = faces3[0, 0, i, 3:7] * np.array([width, height, width, height])
             (x, y, x1, y1) = box.astype("int")
             cv2.rectangle(img2, (x, y), (x1, y1), (0, 0, 255), 2)
-            
+    #HAAR        
     for result in faces4:
         x, y, w, h = result
         x1, y1 = x + w, y + h
