@@ -62,7 +62,7 @@ If you want to use dlib models then checkout the [old-master branch](https://git
 ![head pose estimation](../../blob/master/gifs/4.gif)
 
 ### Face spoofing
-`face_spoofing.py` is used for finding whether the face is real or a photograph or image. An explanation is provided in this [article](https://medium.com/visionwizard/face-spoofing-detection-in-python-e46761fe5947).
+`face_spoofing.py` is used for finding whether the face is real or a photograph or image. An explanation is provided in this [article](https://medium.com/visionwizard/face-spoofing-detection-in-python-e46761fe5947). The model and working is taken from this Github [repo](https://github.com/ee09115/spoofing_detection).
 
 ![face spoofing](../../blob/master/gifs/5.gif)
 
