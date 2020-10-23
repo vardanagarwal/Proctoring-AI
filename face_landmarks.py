@@ -94,6 +94,16 @@ def detect_marks(img, model, face):
     box_moved = move_box(face, [0, offset_y])
     facebox = get_square_box(box_moved)
     
+    h, w = img.shape[:2]
+    if facebox[0] < 0:
+        facebox[0] = 0
+    if facebox[1] < 0:
+        facebox[1] = 0
+    if facebox[2] > w:
+        facebox[2] = w
+    if facebox[3] > h:
+        facebox[3] = h
+    
     face_img = img[facebox[1]: facebox[3],
                      facebox[0]: facebox[2]]
     face_img = cv2.resize(face_img, (128, 128))
@@ -134,3 +144,4 @@ def draw_marks(image, marks, color=(0, 255, 0)):
     """
     for mark in marks:
         cv2.circle(image, (mark[0], mark[1]), 2, color, -1, cv2.LINE_AA)
+    
