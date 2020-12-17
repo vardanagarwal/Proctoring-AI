@@ -180,7 +180,7 @@ while(True):
         eyes = cv2.bitwise_and(img, img, mask=mask)
         mask = (eyes == [0, 0, 0]).all(axis=2)
         eyes[mask] = [255, 255, 255]
-        mid = (shape[42][0] + shape[39][0]) // 2
+        mid = int((shape[42][0] + shape[39][0]) // 2)
         eyes_gray = cv2.cvtColor(eyes, cv2.COLOR_BGR2GRAY)
         threshold = cv2.getTrackbarPos('threshold', 'image')
         _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
