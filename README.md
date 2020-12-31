@@ -6,7 +6,7 @@ Project to create an automated proctoring system where the user can be monitored
 
 For vision:
 ```
-Tensorflow>2
+Tensorflow>2 and < 2.4
 OpenCV
 sklearn=0.19.1 # for face spoofing. 
 The model used was trained with this version and does not support recent ones.
