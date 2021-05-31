@@ -27,7 +27,8 @@ def get_landmark_model(saved_model='models/pose_model'):
         Facial landmarks model
 
     """
-    model = keras.models.load_model(saved_model)
+    #model = keras.models.load_model(saved_model)
+    model = tf.saved_model.load(saved_model)
     return model
 
 def get_square_box(box):
