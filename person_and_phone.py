@@ -324,38 +324,39 @@ def weights_download(out='models/yolov3.weights'):
 yolo = YoloV3()
 load_darknet_weights(yolo, 'models/yolov3.weights') 
 
-cap = cv2.VideoCapture(0)
+
+def detect_phone_and_person(video_path):
+    cap = cv2.VideoCapture(video_path)
+
+    while(True):
+        ret, image = cap.read()
+        if ret == False:
+            break
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (320, 320))
+        img = img.astype(np.float32)
+        img = np.expand_dims(img, 0)
+        img = img / 255
+        class_names = [c.strip() for c in open("models/classes.TXT").readlines()]
+        boxes, scores, classes, nums = yolo(img)
+        count=0
+        for i in range(nums[0]):
+            if int(classes[0][i] == 0):
+                count +=1
+            if int(classes[0][i] == 67):
+                print('Mobile Phone detected')
+        if count == 0:
+            print('No person detected')
+        elif count > 1: 
+            print('More than one person detected')
+            
+        image = draw_outputs(image, (boxes, scores, classes, nums), class_names)
+
+        cv2.imshow('Prediction', image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
 
-while(True):
-    ret, image = cap.read()
-    if ret == False:
-        break
-    img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, (320, 320))
-    img = img.astype(np.float32)
-    img = np.expand_dims(img, 0)
-    img = img / 255
-    class_names = [c.strip() for c in open("models/classes.TXT").readlines()]
-    boxes, scores, classes, nums = yolo(img)
-    count=0
-    for i in range(nums[0]):
-        if int(classes[0][i] == 0):
-            count +=1
-        if int(classes[0][i] == 67):
-            print('Mobile Phone detected')
-    if count == 0:
-        print('No person detected')
-    elif count > 1: 
-        print('More than one person detected')
-        
-    image = draw_outputs(image, (boxes, scores, classes, nums), class_names)
-
-    cv2.imshow('Prediction', image)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
 
