@@ -127,20 +127,21 @@ def head_pose_points(img, rotation_vector, translation_vector, camera_matrix):
 face_model = get_face_detector()
 landmark_model = get_landmark_model()
 
+font = cv2.FONT_HERSHEY_SIMPLEX 
+# 3D model points.
+model_points = np.array([
+                            (0.0, 0.0, 0.0),             # Nose tip
+                            (0.0, -330.0, -65.0),        # Chin
+                            (-225.0, 170.0, -135.0),     # Left eye left corner
+                            (225.0, 170.0, -135.0),      # Right eye right corne
+                            (-150.0, -150.0, -125.0),    # Left Mouth corner
+                            (150.0, -150.0, -125.0)      # Right mouth corner
+                        ])
+
 def detect_head_pose(video_path):
     cap = cv2.VideoCapture(video_path)
     ret, img = cap.read()
     size = img.shape
-    font = cv2.FONT_HERSHEY_SIMPLEX 
-    # 3D model points.
-    model_points = np.array([
-                                (0.0, 0.0, 0.0),             # Nose tip
-                                (0.0, -330.0, -65.0),        # Chin
-                                (-225.0, 170.0, -135.0),     # Left eye left corner
-                                (225.0, 170.0, -135.0),      # Right eye right corne
-                                (-150.0, -150.0, -125.0),    # Left Mouth corner
-                                (150.0, -150.0, -125.0)      # Right mouth corner
-                            ])
 
     # Camera internals
     focal_length = size[1]

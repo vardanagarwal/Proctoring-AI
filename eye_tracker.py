@@ -154,22 +154,28 @@ landmark_model = get_landmark_model()
 left = [36, 37, 38, 39, 40, 41]
 right = [42, 43, 44, 45, 46, 47]
 
-def track_eye(video_path):
+cv2.namedWindow("image")
+kernel = np.ones((9, 9), np.uint8)
+
+def nothing(x):
+    pass
+
+cv2.createTrackbar("threshold", "image", 75, 255, nothing)
+
+def track_eye(video_path=None):
+
+    video_path = ""
 
     cap = cv2.VideoCapture(video_path)
     ret, img = cap.read()
     thresh = img.copy()
 
-    cv2.namedWindow('image')
-    kernel = np.ones((9, 9), np.uint8)
-
-    def nothing(x):
-        pass
-    cv2.createTrackbar('threshold', 'image', 75, 255, nothing)
-
     while(True):
         ret, img = cap.read()
         rects = find_faces(img, face_model)
+
+        if not ret:
+            break
         
         for rect in rects:
             shape = detect_marks(img, landmark_model, rect)
