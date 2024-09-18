@@ -10,7 +10,6 @@ import numpy as np
 from face_detector import get_face_detector, find_faces
 from face_landmarks import get_landmark_model, detect_marks
 
-
 def eye_on_mask(mask, side, shape):
     """
     Create ROI on mask of the size of eyes and also find the extreme points of each eye
@@ -155,47 +154,55 @@ landmark_model = get_landmark_model()
 left = [36, 37, 38, 39, 40, 41]
 right = [42, 43, 44, 45, 46, 47]
 
-cap = cv2.VideoCapture(0)
-ret, img = cap.read()
-thresh = img.copy()
-
-cv2.namedWindow('image')
+cv2.namedWindow("image")
 kernel = np.ones((9, 9), np.uint8)
 
 def nothing(x):
     pass
-cv2.createTrackbar('threshold', 'image', 75, 255, nothing)
 
-while(True):
+cv2.createTrackbar("threshold", "image", 75, 255, nothing)
+
+def track_eye(video_path=None):
+
+    video_path = ""
+
+    cap = cv2.VideoCapture(video_path)
     ret, img = cap.read()
-    rects = find_faces(img, face_model)
-    
-    for rect in rects:
-        shape = detect_marks(img, landmark_model, rect)
-        mask = np.zeros(img.shape[:2], dtype=np.uint8)
-        mask, end_points_left = eye_on_mask(mask, left, shape)
-        mask, end_points_right = eye_on_mask(mask, right, shape)
-        mask = cv2.dilate(mask, kernel, 5)
+    thresh = img.copy()
+
+    while(True):
+        ret, img = cap.read()
+        rects = find_faces(img, face_model)
+
+        if not ret:
+            break
         
-        eyes = cv2.bitwise_and(img, img, mask=mask)
-        mask = (eyes == [0, 0, 0]).all(axis=2)
-        eyes[mask] = [255, 255, 255]
-        mid = int((shape[42][0] + shape[39][0]) // 2)
-        eyes_gray = cv2.cvtColor(eyes, cv2.COLOR_BGR2GRAY)
-        threshold = cv2.getTrackbarPos('threshold', 'image')
-        _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
-        thresh = process_thresh(thresh)
+        for rect in rects:
+            shape = detect_marks(img, landmark_model, rect)
+            mask = np.zeros(img.shape[:2], dtype=np.uint8)
+            mask, end_points_left = eye_on_mask(mask, left, shape)
+            mask, end_points_right = eye_on_mask(mask, right, shape)
+            mask = cv2.dilate(mask, kernel, 5)
+            
+            eyes = cv2.bitwise_and(img, img, mask=mask)
+            mask = (eyes == [0, 0, 0]).all(axis=2)
+            eyes[mask] = [255, 255, 255]
+            mid = int((shape[42][0] + shape[39][0]) // 2)
+            eyes_gray = cv2.cvtColor(eyes, cv2.COLOR_BGR2GRAY)
+            threshold = cv2.getTrackbarPos('threshold', 'image')
+            _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
+            thresh = process_thresh(thresh)
+            
+            eyeball_pos_left = contouring(thresh[:, 0:mid], mid, img, end_points_left)
+            eyeball_pos_right = contouring(thresh[:, mid:], mid, img, end_points_right, True)
+            print_eye_pos(img, eyeball_pos_left, eyeball_pos_right)
+            # for (x, y) in shape[36:48]:
+            #     cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
+            
+        cv2.imshow('eyes', img)
+        cv2.imshow("image", thresh)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
         
-        eyeball_pos_left = contouring(thresh[:, 0:mid], mid, img, end_points_left)
-        eyeball_pos_right = contouring(thresh[:, mid:], mid, img, end_points_right, True)
-        print_eye_pos(img, eyeball_pos_left, eyeball_pos_right)
-        # for (x, y) in shape[36:48]:
-        #     cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
-        
-    cv2.imshow('eyes', img)
-    cv2.imshow("image", thresh)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-    
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
