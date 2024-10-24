@@ -5,10 +5,19 @@ Created on Thu Jul 30 19:21:18 2020
 @author: hp
 """
 
+import os
+import time
+
 import cv2
+from dotenv import load_dotenv
+from loguru import logger
 import numpy as np
-from face_detector import get_face_detector, find_faces
-from face_landmarks import get_landmark_model, detect_marks
+
+from trackers.face_detector import get_face_detector, find_faces
+from trackers.face_landmarks import get_landmark_model, detect_marks
+
+load_dotenv()
+
 
 def eye_on_mask(mask, side, shape):
     """
@@ -138,16 +147,17 @@ def print_eye_pos(img, left, right):
         text = ''
         if left == 1:
             print('Looking left')
-            text = 'Looking left'
+            text = 'left'
         elif left == 2:
             print('Looking right')
-            text = 'Looking right'
+            text = 'right'
         elif left == 3:
             print('Looking up')
-            text = 'Looking up'
+            text = 'up'
         font = cv2.FONT_HERSHEY_SIMPLEX 
         cv2.putText(img, text, (30, 30), font,  
-                   1, (0, 255, 255), 2, cv2.LINE_AA) 
+                   1, (0, 255, 255), 2, cv2.LINE_AA)
+        return text
 
 face_model = get_face_detector()
 landmark_model = get_landmark_model()
@@ -162,47 +172,92 @@ def nothing(x):
 
 cv2.createTrackbar("threshold", "image", 75, 255, nothing)
 
-def track_eye(video_path=None):
+def track_eye(video_path, res_dict):
+    eye_left_count = 0
+    eye_right_count = 0
+    gaze_direction = 0 # 1: left, 2: right
+    sustained_gaze = False
+    skip_count = int(os.getenv("FRAMETOANALYSE", 90))
 
-    video_path = ""
+    try:
+        start_time = time.time()
+        logger.info("Starting eye tracking")
 
-    cap = cv2.VideoCapture(video_path)
-    ret, img = cap.read()
-    thresh = img.copy()
-
-    while(True):
+        cap = cv2.VideoCapture(video_path)
         ret, img = cap.read()
-        rects = find_faces(img, face_model)
+        thresh = img.copy()
+        frame_count = 0
 
-        if not ret:
-            break
-        
-        for rect in rects:
-            shape = detect_marks(img, landmark_model, rect)
-            mask = np.zeros(img.shape[:2], dtype=np.uint8)
-            mask, end_points_left = eye_on_mask(mask, left, shape)
-            mask, end_points_right = eye_on_mask(mask, right, shape)
-            mask = cv2.dilate(mask, kernel, 5)
+        while True:
+            ret, img = cap.read()
+
+            if not ret:
+                break
             
-            eyes = cv2.bitwise_and(img, img, mask=mask)
-            mask = (eyes == [0, 0, 0]).all(axis=2)
-            eyes[mask] = [255, 255, 255]
-            mid = int((shape[42][0] + shape[39][0]) // 2)
-            eyes_gray = cv2.cvtColor(eyes, cv2.COLOR_BGR2GRAY)
-            threshold = cv2.getTrackbarPos('threshold', 'image')
-            _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
-            thresh = process_thresh(thresh)
-            
-            eyeball_pos_left = contouring(thresh[:, 0:mid], mid, img, end_points_left)
-            eyeball_pos_right = contouring(thresh[:, mid:], mid, img, end_points_right, True)
-            print_eye_pos(img, eyeball_pos_left, eyeball_pos_right)
-            # for (x, y) in shape[36:48]:
-            #     cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
-            
-        cv2.imshow('eyes', img)
-        cv2.imshow("image", thresh)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            rects = find_faces(img, face_model)
+            thresh = img.copy()
+
+            frame_count += 1
+
+            if not frame_count % skip_count == 0:
+                continue
+
+            for rect in rects:
+                shape = detect_marks(img, landmark_model, rect)
+                mask = np.zeros(img.shape[:2], dtype=np.uint8)
+                mask, end_points_left = eye_on_mask(mask, left, shape)
+                mask, end_points_right = eye_on_mask(mask, right, shape)
+                mask = cv2.dilate(mask, kernel, 5)
+                
+                eyes = cv2.bitwise_and(img, img, mask=mask)
+                mask = (eyes == [0, 0, 0]).all(axis=2)
+                eyes[mask] = [255, 255, 255]
+                mid = int((shape[42][0] + shape[39][0]) // 2)
+                eyes_gray = cv2.cvtColor(eyes, cv2.COLOR_BGR2GRAY)
+                threshold = cv2.getTrackbarPos('threshold', 'image')
+                _, thresh = cv2.threshold(eyes_gray, threshold, 255, cv2.THRESH_BINARY)
+                thresh = process_thresh(thresh)
+                
+                eyeball_pos_left = contouring(thresh[:, 0:mid], mid, img, end_points_left)
+                eyeball_pos_right = contouring(thresh[:, mid:], mid, img, end_points_right, True)
+                pos = print_eye_pos(img, eyeball_pos_left, eyeball_pos_right)
+
+                if pos == "left":
+                    if gaze_direction != 1:
+                        sustained_gaze = False
+                    gaze_direction = 1
+                    if not sustained_gaze:
+                        eye_left_count += 1
+                        sustained_gaze = True
+                elif pos == "right":
+                    if gaze_direction != 2:
+                        sustained_gaze = False
+                    gaze_direction = 2
+                    if not sustained_gaze:
+                        eye_right_count += 1
+                        sustained_gaze = True
+                else:
+                    gaze_direction = 0
+                    sustained_gaze = False
+
+                # for (x, y) in shape[36:48]:
+                #     cv2.circle(img, (x, y), 2, (255, 0, 0), -1)
+                
+            # cv2.imshow('eyes', img)
+            # cv2.imshow("image", thresh)
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
+
+    except Exception as e:
+        logger.info(f"Error in eye_tracker: {e}")
         
     cap.release()
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
+
+    logger.info(f"track_eye: {time.time() - start_time} secs")
+    logger.info("Eye tracking completed")
+
+    res_dict["Eye Left"] = eye_left_count
+    res_dict["Eye Right"] = eye_right_count
+    print(res_dict)
+    return res_dict

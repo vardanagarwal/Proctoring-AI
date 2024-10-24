@@ -5,9 +5,15 @@ Created on Fri May  1 22:45:22 2020
 @author: hp
 """
 
-import tensorflow as tf
-import numpy as np
+import os
+import time
+
 import cv2
+from dotenv import load_dotenv
+from loguru import logger
+import numpy as np
+import tensorflow as tf
+
 
 from tensorflow.keras import Model
 from tensorflow.keras.layers import (
@@ -23,6 +29,10 @@ from tensorflow.keras.layers import (
 )
 from tensorflow.keras.regularizers import l2
 import wget
+
+
+load_dotenv()
+
 
 def load_darknet_weights(model, weights_file):
     '''
@@ -324,39 +334,95 @@ def weights_download(out='models/yolov3.weights'):
 yolo = YoloV3()
 load_darknet_weights(yolo, 'models/yolov3.weights') 
 
-
-def detect_phone_and_person(video_path):
-    cap = cv2.VideoCapture(video_path)
-
-    while(True):
-        ret, image = cap.read()
-        if ret == False:
-            break
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (320, 320))
-        img = img.astype(np.float32)
-        img = np.expand_dims(img, 0)
-        img = img / 255
-        class_names = [c.strip() for c in open("models/classes.TXT").readlines()]
-        boxes, scores, classes, nums = yolo(img)
-        count=0
-        for i in range(nums[0]):
-            if int(classes[0][i] == 0):
-                count +=1
-            if int(classes[0][i] == 67):
-                print('Mobile Phone detected')
-        if count == 0:
-            print('No person detected')
-        elif count > 1: 
-            print('More than one person detected')
-            
-        image = draw_outputs(image, (boxes, scores, classes, nums), class_names)
-
-        cv2.imshow('Prediction', image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+# video_path = "https://codeprism-assessment.s3.ap-south-1.amazonaws.com/recordings/138-529-dc7da4e4eba4bf6d135dd7e5-video.webm"
 
 
-    cap.release()
-    cv2.destroyAllWindows()
+def detect_phone_and_person(video_path, res_dict):
+    multiple_persons_detected = 0
+    no_persons_detected = 0
+    mobile_phone_detected = 0
+    event_no = 0 # 1:Phone, 2:No person, 3:Multiple persons
+    sustained_detection = False
+    curr = ""
+    skip_count = int(os.getenv("FRAMETOANALYSE", 90))
 
+    try:
+        start_time = time.time()
+        logger.info("Starting phone and person detection")
+        cap = cv2.VideoCapture(video_path)
+        frame_count = 0
+
+        while True:
+            ret, image = cap.read()
+            if ret == False:
+                break
+
+            frame_count += 1
+
+            if not frame_count % skip_count == 0:
+                continue
+
+            img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            img = cv2.resize(img, (320, 320))
+            img = img.astype(np.float32)
+            img = np.expand_dims(img, 0)
+            img = img / 255
+            class_names = [c.strip() for c in open("models/classes.TXT").readlines()]
+            boxes, scores, classes, nums = yolo(img)
+            count=0
+
+            for i in range(nums[0]):
+                if int(classes[0][i] == 0):
+                    count += 1
+                if int(classes[0][i] == 67):
+                    curr = "phone"
+                    event_no = 1
+            if count == 0:
+                curr = "no_person"
+                event_no = 2
+            elif count > 1:
+                curr = "multiple_persons"
+                event_no = 3
+
+            if curr == "phone":
+                if event_no != 1:
+                    sustained_detection = False
+                event_no = 1
+                if not sustained_detection:
+                    logger.info("Mobile Phone detected")
+                    mobile_phone_detected += 1
+                    sustained_detection = True
+            elif curr == "no_person":
+                if event_no != 2:
+                    sustained_detection = False
+                event_no = 2
+                if not sustained_detection:
+                    logger.info("No person detected")
+                    no_persons_detected += 1
+                    sustained_detection = True
+            elif curr == "multiple_persons":
+                if event_no != 3:
+                    sustained_detection = False
+                event_no = 3
+                if not sustained_detection:
+                    logger.info("Multiple persons detected")
+                    multiple_persons_detected += 1
+                    sustained_detection = True
+                
+            image = draw_outputs(image, (boxes, scores, classes, nums), class_names)
+
+            # cv2.imshow('Prediction', image)
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
+
+        cap.release()
+    except Exception as e:
+        logger.error(f"Error in person_and_phone: {e}")
+
+    end_time = time.time()
+    logger.info(f"detect_phone_and_person: {end_time - start_time} secs")
+    res_dict["Multiple Persons"] = multiple_persons_detected
+    res_dict["No Person"] = no_persons_detected
+    res_dict["Mobile Phone"] = mobile_phone_detected
+
+    return res_dict

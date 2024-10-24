@@ -5,11 +5,21 @@ Created on Fri Jul 31 03:00:36 2020
 @author: hp
 """
 
-import cv2
-import numpy as np
 import math
-from face_detector import get_face_detector, find_faces
-from face_landmarks import get_landmark_model, detect_marks
+import os
+import time
+
+import cv2
+from dotenv import load_dotenv
+from loguru import logger
+import numpy as np
+
+from trackers.face_detector import get_face_detector, find_faces
+from trackers.face_landmarks import get_landmark_model, detect_marks
+
+
+load_dotenv()
+
 
 def get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val):
     """Return the 3D points present as 2D for making annotation box"""
@@ -138,22 +148,42 @@ model_points = np.array([
                             (150.0, -150.0, -125.0)      # Right mouth corner
                         ])
 
-def detect_head_pose(video_path):
-    cap = cv2.VideoCapture(video_path)
-    ret, img = cap.read()
-    size = img.shape
+def detect_head_pose(video_path, res_dict):
+    head_left = 0
+    head_right = 0
+    head_up = 0
+    head_down = 0
+    head_pose_direction = 0 # 1: down, 2: up, 3: right, 4: left
+    sustained_detection = False
+    skip_count = int(os.getenv("FRAMETOANALYSE", 90))
 
-    # Camera internals
-    focal_length = size[1]
-    center = (size[1]/2, size[0]/2)
-    camera_matrix = np.array(
-                            [[focal_length, 0, center[0]],
-                            [0, focal_length, center[1]],
-                            [0, 0, 1]], dtype = "double"
-                            )
-    while True:
+    try:
+        logger.info("Starting head pose estimation")
+        start_time = time.time()
+
+        cap = cv2.VideoCapture(video_path)
         ret, img = cap.read()
-        if ret == True:
+        size = img.shape
+        frame_count = 0
+
+
+        # Camera internals
+        focal_length = size[1]
+        center = (size[1]/2, size[0]/2)
+        camera_matrix = np.array(
+                                [[focal_length, 0, center[0]],
+                                [0, focal_length, center[1]],
+                                [0, 0, 1]], dtype = "double"
+                                )
+        while True:
+            ret, img = cap.read()
+            if not ret:
+                break
+
+            frame_count += 1
+            if not frame_count % skip_count == 0:
+                continue
+
             faces = find_faces(img, face_model)
             for face in faces:
                 marks = detect_marks(img, landmark_model, face)
@@ -201,26 +231,58 @@ def detect_head_pose(video_path):
                     ang2 = 90
                     
                     # print('div by zero error')
-                if ang1 >= 48:
-                    print('Head down')
+                if ang1 >= 48: # 48
+                    if head_pose_direction != 1:
+                        sustained_detection = False
+                    head_pose_direction = 1
+                    if not sustained_detection:
+                        logger.info('Head down')
+                        head_down += 1
+                        sustained_detection = True
                     cv2.putText(img, 'Head down', (30, 30), font, 2, (255, 255, 128), 3)
-                elif ang1 <= -48:
-                    print('Head up')
+                elif ang1 <= -48: #-48
+                    if head_pose_direction != 2:
+                        sustained_detection = False
+                    head_pose_direction = 2
+                    if not sustained_detection:
+                        logger.info('Head up')
+                        head_up += 1
+                        sustained_detection = True
                     cv2.putText(img, 'Head up', (30, 30), font, 2, (255, 255, 128), 3)
                 
-                if ang2 >= 48:
-                    print('Head right')
+                if ang2 >= 48: # 48
+                    if head_pose_direction != 3:
+                        sustained_detection = False
+                    head_pose_direction = 3
+                    if not sustained_detection:
+                        logger.info('Head right')
+                        head_right += 1
+                        sustained_detection = True
                     cv2.putText(img, 'Head right', (90, 30), font, 2, (255, 255, 128), 3)
-                elif ang2 <= -48:
-                    print('Head left')
-                    cv2.putText(img, 'Head left', (90, 30), font, 2, (255, 255, 128), 3)
+                elif ang2 <= -48: # 48
+                    if head_pose_direction != 4:
+                        sustained_detection = False
+                    head_pose_direction = 4
+                    if not sustained_detection:
+                        logger.info('Head left')
+                        head_left += 1
+                        sustained_detection = True
                 
                 cv2.putText(img, str(ang1), tuple(p1), font, 2, (128, 255, 255), 3)
                 cv2.putText(img, str(ang2), tuple(x1), font, 2, (255, 255, 128), 3)
-            cv2.imshow('img', img)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        else:
-            break
-    cv2.destroyAllWindows()
+                # cv2.imshow('img', img)
+                # if cv2.waitKey(1) & 0xFF == ord('q'):
+                #     break
+
+    except Exception as e:
+        logger.info(f"Error in head_pose_estimation: {e}")
+
+    # cv2.destroyAllWindows()
     cap.release()
+
+    logger.info(f"detect_head_pose: {time.time() - start_time}")
+    res_dict["Head Down"] = head_down
+    res_dict["Head Up"] = head_up
+    res_dict["Head Right"] = head_right
+    res_dict["Head Left"] = head_left
+    return res_dict
