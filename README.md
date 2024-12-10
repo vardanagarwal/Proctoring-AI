@@ -7,7 +7,7 @@ To run the programs in this repo, do the following:
 - create a virtual environment using the command:
   - `python -m venv venv`
 - activate the virtual environment
-  - `cd ./venv/Scripts/activate` (windows users)
+  - `./venv/Scripts/activate` (windows users)
   - `source ./venv/bin/activate` (mac and linux users)
 - install the requirements
   - `pip install --upgrade pip` (to upgrade pip)
